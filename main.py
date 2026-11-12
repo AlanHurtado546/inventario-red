@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel
 
 app = FastAPI(title="Inventario de Red")
@@ -59,3 +59,18 @@ def obtener(nombre: str):
         )
 
     return equipo
+
+@app.delete("/dispositivos/{nombre}", status_code=204)
+async def eliminar(nombre: str):
+
+    equipo = buscar(nombre)
+
+    if equipo is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No existe el equipo {nombre}"
+        )
+
+    inventario.remove(equipo)
+
+    return Response(status_code=204)
