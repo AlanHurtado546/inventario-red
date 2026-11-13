@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel
 
 app = FastAPI(title="Inventario de Red")
@@ -42,18 +42,22 @@ def buscar(nombre: str) -> Dispositivo | None:
     return None
 
 
+# GET - Inicio
 @app.get("/")
 def inicio():
     return {"mensaje": "API de inventario funcionando"}
 
 
+# GET - Listar
 @app.get("/dispositivos")
 def listar():
     return inventario
 
 
+# GET - Obtener uno
 @app.get("/dispositivos/{nombre}")
 def obtener(nombre: str):
+
     equipo = buscar(nombre)
 
     if equipo is None:
@@ -65,7 +69,7 @@ def obtener(nombre: str):
     return equipo
 
 
-# POST - Alta
+# POST - Crear
 @app.post("/dispositivos", status_code=201)
 def crear(nuevo: Dispositivo):
 
@@ -80,7 +84,7 @@ def crear(nuevo: Dispositivo):
     return nuevo
 
 
-# PUT - Reemplazar dispositivo
+# PUT - Reemplazar
 @app.put("/dispositivos/{nombre}")
 def reemplazar(nombre: str, datos: Dispositivo):
 
@@ -115,3 +119,20 @@ def modificar(nombre: str, cambios: DispositivoParcial):
         setattr(equipo, campo, valor)
 
     return equipo
+
+
+# DELETE - Eliminar
+@app.delete("/dispositivos/{nombre}", status_code=204)
+def eliminar(nombre: str):
+
+    equipo = buscar(nombre)
+
+    if equipo is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No existe el equipo {nombre}"
+        )
+
+    inventario.remove(equipo)
+
+    return Response(status_code=204)
