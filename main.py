@@ -1,61 +1,24 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
+from typing import Optional
 
-app = FastAPI(title="Inventario de Red")
-
+app = FastAPI()
 
 class Dispositivo(BaseModel):
+    id: Optional[int] = None
     nombre: str
     tipo: str
     ip: str
-    activo: bool = True
+    ubicacion: str
 
+dispositivos = []
 
-inventario = [
-    Dispositivo(
-        nombre="R1",
-        tipo="router",
-        ip="10.0.0.1",
-        activo=True
-    ),
-    Dispositivo(
-        nombre="SW1",
-        tipo="switch",
-        ip="10.0.0.2",
-        activo=True
-    )
-]
-
-
-def buscar(nombre: str) -> Dispositivo | None:
-    for equipo in inventario:
-        if equipo.nombre.upper() == nombre.upper():
-            return equipo
-
-    return None
-
-
-@app.get("/")
-def inicio():
+@app.post("/dispositivos/", status_code=201)
+def agregar_dispositivo(dispositivo: Dispositivo):
+    dispositivo.id = len(dispositivos) + 1
+    dispositivos.append(dispositivo)
     return {
-        "mensaje": "API de inventario funcionando"
+        "mensaje": "Dispositivo agregado correctamente",
+        "dispositivo": dispositivo
     }
 
-
-@app.get("/dispositivos")
-def listar():
-    return inventario
-
-
-@app.get("/dispositivos/{nombre}")
-def obtener(nombre: str):
-
-    equipo = buscar(nombre)
-
-    if equipo is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No existe el equipo {nombre}"
-        )
-
-    return equipo
